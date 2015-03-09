@@ -1,5 +1,6 @@
 package com.arkar.apps.gitbook.ui;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -16,6 +17,7 @@ import com.arkar.apps.gitbook.R;
 import com.arkar.apps.gitbook.adapter.RepoListAdapter;
 import com.arkar.apps.gitbook.model.Repo;
 import com.arkar.apps.gitbook.network.RepoApi;
+import com.arkar.apps.gitbook.util.PrefUtilis;
 
 import java.util.List;
 
@@ -42,6 +44,9 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        if (PrefUtilis.checkAuthenticated(this) == 0) {
+            startActivity(new Intent(MainActivity.this, LoginActivity.class));
+        }
 
         mRepoList = (RecyclerView) findViewById(R.id.repo_list);
         mProgressbar = (ProgressBar) findViewById(R.id.progressbar);
@@ -65,8 +70,9 @@ public class MainActivity extends ActionBarActivity {
     }
 
     private Subscription getRepoList() {
+        final String oAuthToken = "token " + PrefUtilis.getOAuthToken(this);
         return getRestAdapter(Config.BASE_URL).create(RepoApi.class)
-                .getRepositories(Config.PER_PAGE)
+                .getRepositories(oAuthToken)
                 .flatMap(new Func1<List<Repo>, Observable<Repo>>() {
                     @Override
                     public Observable<Repo> call(List<Repo> repoList) {
@@ -76,7 +82,7 @@ public class MainActivity extends ActionBarActivity {
                 .flatMap(new Func1<Repo, Observable<Repo>>() {
                     @Override
                     public Observable<Repo> call(Repo repo) {
-                        return getRepo(repo.getOwner().getName(), repo.getRepoName());
+                        return getRepo(oAuthToken, repo.getOwner().getName(), repo.getRepoName());
                     }
                 })
                 .observeOn(AndroidSchedulers.mainThread())
@@ -102,9 +108,9 @@ public class MainActivity extends ActionBarActivity {
                 });
     }
 
-    private Observable<Repo> getRepo(String owner, String repoName) {
+    private Observable<Repo> getRepo(String oAuthToken, String owner, String repoName) {
         return getRestAdapter(Config.BASE_URL).create(RepoApi.class)
-                .getRepo(owner, repoName);
+                .getRepo(oAuthToken, owner, repoName);
     }
 
     @Override
