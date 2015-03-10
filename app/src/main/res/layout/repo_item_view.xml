@@ -16,7 +16,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_toRightOf="@+id/avatar"
-            android:textSize="20dp"/>
+            android:textSize="20dp"
+            android:textColor="@color/primary_text"/>
         <TextView
             android:id="@+id/star_count"
             android:layout_width="wrap_content"
@@ -24,7 +25,8 @@
             android:layout_above="@+id/description"
             android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"
-            android:layout_marginTop="2dp"/>
+            android:layout_marginTop="2dp"
+            android:textColor="@color/secondary_text"/>
         <TextView
             android:id="@+id/description"
             android:layout_width="wrap_content"
@@ -33,6 +35,7 @@
             android:layout_below="@+id/repo_name"
             android:maxLines="1"
             android:fontFamily="sans-serif-light"
+            android:textColor="@color/secondary_text"
             android:layout_marginTop="4dp"/>
     </RelativeLayout>
 </LinearLayout>

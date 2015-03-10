@@ -9,6 +9,16 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:layout_gravity="center">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="@string/app_name"
+            android:textSize="21dp"
+            android:gravity="center"
+            android:textAllCaps="true"
+            android:fontFamily="San-Serif"
+            android:textColor="@color/primary_text"
+            android:layout_marginBottom="16dp"/>
         <EditText
             android:id="@+id/username"
             android:layout_width="match_parent"
@@ -27,6 +37,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="16dp"
-            android:text="@string/text_login_button"/>
+            android:text="@string/text_login_button"
+            android:fontFamily="San-Serif-light"
+            android:textColor="@color/light_primary"
+            android:background="@color/accent"/>
     </LinearLayout>
 </FrameLayout>

@@ -2,7 +2,6 @@ package com.arkar.apps.gitbook.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
@@ -28,7 +27,7 @@ import static com.arkar.apps.gitbook.util.NetworkUtils.checkConnection;
 import static com.arkar.apps.gitbook.util.NetworkUtils.getRestAdapter;
 
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends BaseActivity {
 
     private RecyclerView mRepoList;
     private ProgressBar mProgressbar;
@@ -44,6 +43,8 @@ public class MainActivity extends ActionBarActivity {
         if (PrefUtilis.checkAuthenticated(this) == 0) {
             goToLogin();
         }
+
+        setupToolbar(false, R.string.title_repos);
 
         mRepoList = (RecyclerView) findViewById(R.id.repo_list);
         mProgressbar = (ProgressBar) findViewById(R.id.progressbar);

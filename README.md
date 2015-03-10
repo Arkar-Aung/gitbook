@@ -7,7 +7,7 @@ Digging into [RxJava](https://github.com/ReactiveX/RxJava) with github api.
 
 <strike>To add authentication</strike>
 
-To replace actionbar with toolbar
+<strike>To replace actionbar with toolbar</strike>
 
 To add detail page
 

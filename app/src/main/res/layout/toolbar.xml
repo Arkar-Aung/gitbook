@@ -1,0 +1,12 @@
+<android.support.v7.widget.Toolbar
+    android:id="@+id/toolbar"
+    android:layout_width="match_parent"
+    android:layout_height="?actionBarSize"
+    android:background="@color/primary"
+    android:layout_gravity="top"
+    android:contentInsetStart="72dp"
+    pwarr:popupTheme="@style/ActionBarPopupThemeOverlay"
+    pwarr:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:pwarr="http://schemas.android.com/apk/res-auto" >
+</android.support.v7.widget.Toolbar>
