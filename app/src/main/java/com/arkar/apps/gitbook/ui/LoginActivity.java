@@ -7,21 +7,19 @@ import android.support.v7.app.ActionBarActivity;
 import android.util.Base64;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
 import com.arkar.apps.gitbook.Config;
 import com.arkar.apps.gitbook.R;
-import com.arkar.apps.gitbook.model.Auth;
 import com.arkar.apps.gitbook.model.LoginParam;
 import com.arkar.apps.gitbook.network.LoginApi;
 import com.arkar.apps.gitbook.util.PrefUtilis;
 
 import rx.Subscription;
-import rx.functions.Action1;
 
+import static com.arkar.apps.gitbook.util.NetworkUtils.checkConnection;
 import static com.arkar.apps.gitbook.util.NetworkUtils.getRestAdapter;
 
 public class LoginActivity extends ActionBarActivity {
@@ -41,47 +39,44 @@ public class LoginActivity extends ActionBarActivity {
         mPassword = (EditText) findViewById(R.id.password);
         mLoginButton = (Button) findViewById(R.id.login_button);
 
-        mLoginButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog = ProgressDialog.show(LoginActivity.this, null, "Authenticating ! Please wait ..");
-                login("Arkar-Aung", "!@#$%^&*(fF123");
-//                if (! mUsername.getText().toString().isEmpty() &&
-//                        ! mPassword.getText().toString().isEmpty()) {
-//
-//                    //mLoginSubscription = login(mUsername.getText().toString(), mPassword.getText().toString());
-//
-//                }
+        mLoginButton.setOnClickListener(v -> {
+            if (mUsername.getText().toString().isEmpty()) {
+                mUsername.setError(getResources().getString(R.string.validation_message_username));
+            } else if (mPassword.getText().toString().isEmpty()) {
+                mPassword.setError(getResources().getString(R.string.validation_message_password));
+            } else {
+                dialog = ProgressDialog.show(LoginActivity.this, null,
+                        getResources().getString(R.string.message_authenticating));
+                mLoginSubscription = login(mUsername.getText().toString(), mPassword.getText().toString());
             }
         });
     }
 
     private Subscription login(String username, String password) {
+        if (! checkConnection(this)) {
+            Toast.makeText(this, getResources().getString(R.string.message_no_connection),
+                    Toast.LENGTH_SHORT).show();
+            return null;
+        }
+
         String credential = username + ":" + password;
         String authorization = "Basic " + Base64.encodeToString(credential.getBytes(), Base64.NO_WRAP);
         LoginParam loginParam = new LoginParam(Config.CLIENT_SECRET, "From gitbook app");
         return getRestAdapter(Config.BASE_URL).create(LoginApi.class)
                 .basicLogin(authorization, Config.CLIENT_ID, loginParam)
-                .subscribe(new Action1<Auth>() {
-                    @Override
-                    public void call(Auth auth) {
-                        dialog.dismiss();
-                        if (auth.getToken() != null) {
-                            PrefUtilis.setAuthenticated(LoginActivity.this, 1);
-                            PrefUtilis.setOAuthToken(LoginActivity.this, auth.getToken());
-                            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                            startActivity(intent);
-                            finish();
-                        }
+                .subscribe(auth -> {
+                    dialog.dismiss();
+                    if (auth.getToken() != null) {
+                        PrefUtilis.setAuthenticated(LoginActivity.this, 1);
+                        PrefUtilis.setOAuthToken(LoginActivity.this, auth.getToken());
+                        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        startActivity(intent);
+                        finish();
                     }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        Toast.makeText(LoginActivity.this, throwable.getMessage(), Toast.LENGTH_SHORT).show();
-                        dialog.dismiss();
-                    }
+                }, throwable -> {
+                    Toast.makeText(LoginActivity.this, throwable.getMessage(), Toast.LENGTH_SHORT).show();
+                    dialog.dismiss();
                 });
     }
 

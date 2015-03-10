@@ -19,15 +19,12 @@ import com.arkar.apps.gitbook.model.Repo;
 import com.arkar.apps.gitbook.network.RepoApi;
 import com.arkar.apps.gitbook.util.PrefUtilis;
 
-import java.util.List;
-
 import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
-import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
+import static com.arkar.apps.gitbook.util.NetworkUtils.checkConnection;
 import static com.arkar.apps.gitbook.util.NetworkUtils.getRestAdapter;
 
 
@@ -45,7 +42,7 @@ public class MainActivity extends ActionBarActivity {
         setContentView(R.layout.activity_main);
 
         if (PrefUtilis.checkAuthenticated(this) == 0) {
-            startActivity(new Intent(MainActivity.this, LoginActivity.class));
+            goToLogin();
         }
 
         mRepoList = (RecyclerView) findViewById(R.id.repo_list);
@@ -57,54 +54,47 @@ public class MainActivity extends ActionBarActivity {
         mRepoListAdapter = new RepoListAdapter();
         mRepoList.setAdapter(mRepoListAdapter);
 
-        mRetry.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mRetry.setVisibility(View.GONE);
-                mProgressbar.setVisibility(View.VISIBLE);
-                getRepoList();
-            }
+        mRetry.setOnClickListener(v -> {
+            mRetry.setVisibility(View.GONE);
+            mProgressbar.setVisibility(View.VISIBLE);
+            getRepoList();
         });
+    }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
         mRepoSubscription = getRepoList();
     }
 
     private Subscription getRepoList() {
+        if (! checkConnection(this)) {
+            Toast.makeText(this, getResources().getString(R.string.message_no_connection),
+                    Toast.LENGTH_SHORT).show();
+            mRetry.setVisibility(View.VISIBLE);
+            mProgressbar.setVisibility(View.GONE);
+            return null;
+        }
+
         final String oAuthToken = "token " + PrefUtilis.getOAuthToken(this);
         return getRestAdapter(Config.BASE_URL).create(RepoApi.class)
                 .getRepositories(oAuthToken)
-                .flatMap(new Func1<List<Repo>, Observable<Repo>>() {
-                    @Override
-                    public Observable<Repo> call(List<Repo> repoList) {
-                        return Observable.from(repoList);
-                    }
-                })
-                .flatMap(new Func1<Repo, Observable<Repo>>() {
-                    @Override
-                    public Observable<Repo> call(Repo repo) {
-                        return getRepo(oAuthToken, repo.getOwner().getName(), repo.getRepoName());
-                    }
-                })
+                .flatMap(repoList -> Observable.from(repoList))
+                .flatMap(repo -> getRepo(oAuthToken, repo.getOwner().getName(), repo.getRepoName()))
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io())
-                .subscribe(new Action1<Repo>() {
-                    @Override
-                    public void call(Repo repo) {
-                        mRepoListAdapter.add(repo);
-                        mRepoListAdapter.notifyDataSetChanged();
-                        mProgressbar.setVisibility(View.GONE);
-                        mRetry.setVisibility(View.GONE);
-                        mRepoList.setVisibility(View.VISIBLE);
+                .subscribe(repo -> {
+                    mRepoListAdapter.add(repo);
+                    mRepoListAdapter.notifyDataSetChanged();
+                    mProgressbar.setVisibility(View.GONE);
+                    mRetry.setVisibility(View.GONE);
+                    mRepoList.setVisibility(View.VISIBLE);
+                }, throwable -> {
+                    Toast.makeText(MainActivity.this, throwable.getMessage(), Toast.LENGTH_SHORT).show();
+                    if (mRepoList.getVisibility() != View.VISIBLE) {
+                        mRetry.setVisibility(View.VISIBLE);
                     }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        Toast.makeText(MainActivity.this, throwable.getMessage(), Toast.LENGTH_SHORT).show();
-                        if (mRepoList.getVisibility() != View.VISIBLE) {
-                            mRetry.setVisibility(View.VISIBLE);
-                        }
-                        mProgressbar.setVisibility(View.GONE);
-                    }
+                    mProgressbar.setVisibility(View.GONE);
                 });
     }
 
@@ -116,7 +106,7 @@ public class MainActivity extends ActionBarActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        mRepoSubscription.unsubscribe();
+        //mRepoSubscription.unsubscribe();
     }
 
     @Override
@@ -134,10 +124,20 @@ public class MainActivity extends ActionBarActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_logout) {
+            PrefUtilis.setAuthenticated(this, 0);
+            PrefUtilis.setOAuthToken(this, "");
+            goToLogin();
             return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void goToLogin() {
+        Intent intent = new Intent(this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(intent);
+        finish();
     }
 }

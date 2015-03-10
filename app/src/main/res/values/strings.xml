@@ -3,9 +3,14 @@
 
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+    <string name="action_logout">Logout</string>
     <string name="message_retry">Tap to retry</string>
+    <string name="message_no_connection">No Connection</string>
+    <string name="message_authenticating">Authenticating ! Please wait ..</string>
     <string name="hint_username">Username</string>
     <string name="hint_password">Password</string>
+    <string name="validation_message_username">Username or Email is required</string>
+    <string name="validation_message_password">Password is required</string>
     <string name="text_login_button">Login</string>
     <string name="title_activity_login">LoginActivity</string>
 </resources>

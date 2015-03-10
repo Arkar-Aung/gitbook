@@ -1,4 +1,9 @@
 package com.arkar.apps.gitbook.util;
+
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -28,5 +33,16 @@ public class NetworkUtils {
                 .setConverter(new GsonConverter(gson))
                 .setClient(new OkClient(okHttpClient))
                 .build();
+    }
+
+    public static boolean checkConnection(Context context) {
+        ConnectivityManager manager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = manager.getActiveNetworkInfo();
+        boolean isAvailable = false;
+        if (networkInfo != null && networkInfo.isAvailable()) {
+            isAvailable = true;
+        }
+
+        return isAvailable;
     }
 }
